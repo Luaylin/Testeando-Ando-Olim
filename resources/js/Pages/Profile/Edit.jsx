@@ -5,23 +5,34 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import { Head } from '@inertiajs/react';
 import { Image } from 'primereact/image';
 import {Menu} from 'primereact/menu'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {Dialog} from 'primereact/dialog'
 import {Accordion, AccordionTab} from 'primereact/accordion'
 import UpdateInfoLaboral from './Partials/UpdateInfoLaboral';
 import UpdateInfoAcademica from './Partials/UpdateInfoAcademica';
+import { Button } from 'primereact/button';
+import { CityService } from '@/Services/CityService';
         
 
 export default function Edit({ auth, mustVerifyEmail, status }) {
-
     const [updateInfoPersonal, setUpdateInfoPersonal] = useState(false)
     const [updateInfoLaboral, setUpdateInfoLaboral] = useState(false)
     const [updateInfoAcademica, setUpdateInfoAcademica] = useState(false)
     const [updatePassword, setUpdatePassword] = useState(false)
     const [deleteAccount, setDeleteAccount] = useState(false)
+    const [currentCity, setCurrentCity] = useState('')
+
+    useEffect(()=> {
+        CityService.getCity(auth.user.city_id).then((res)=>{
+            setCurrentCity(res.name);
+        })
+    }, [])
 
     let items = [
         {label: 'Actualizar Inf. personal', icon: 'pi pi-fw pi-pencil', command: () => {
+            setUpdateInfoPersonal(true);
+        }},
+        {label: 'Actualizar Foto de Perfil', icon: 'pi pi-fw pi-user', command: () => {
             setUpdateInfoPersonal(true);
         }},
         {label: 'Actualizar contraseña', icon: 'pi pi-fw pi-key', command: () => {
@@ -48,10 +59,12 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                 <div className="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-6">
                     <div className="p-4 sm:p-8 bg-white shadow sm:rounded-lg grid grid-cols-12">
                         <div className='col-span-2'>
-                            <Image src="/assets/logo-senati.png" alt="Image" width="250" style={{verticalAlign: "middle", display: 'block'}}/>
+                            <Image src="/assets/logo-senati.png" alt="Image" width="250" style={{verticalAlign: "middle", display: 'block'}} preview />
                         </div>
-                        <div className='ml-4 col-span-6 align-middle inline-block'>
-                            <h1>{`${auth.user.name} ${auth.user.surname} (${auth.user.username})`}</h1>
+                        <div className='ml-4 col-span-7 align-middle inline-block'>
+                            <h1>{`${auth.user.name} ${auth.user.surname}`}</h1>
+                            <h1>{`(${auth.user.username})`}</h1>
+                            <h1>{`${currentCity}`}</h1>
                         </div>
                         <div className='col-span-3 align-middle inline-block'>
                             <Menu style={{width: "auto"}} model={items} />
@@ -60,7 +73,10 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
 
                     <div className="grid grid-cols-12">
                         <div className="p-4 sm:p-8 bg-white shadow sm:rounded-lg col-span-4">
-                            <Accordion multiple activeIndex={[0, 1]}>
+                            <Accordion multiple activeIndex={[1, 2]}>
+                                <AccordionTab header="Amigos">
+                                    asd
+                                </AccordionTab>
                                 <AccordionTab header="Información Laboral">
                                     asd
                                 </AccordionTab>
@@ -70,7 +86,8 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
                             </Accordion>
                         </div>
                         <div className="ml-6 p-4 sm:p-8 bg-white shadow sm:rounded-lg col-span-8">
-                            Publicaciones
+                            <h1>Publicaciones</h1>
+                            <center><Button icon="pi pi-plus" label="Crear publicación" /></center>
                         </div>
                     </div>
                 </div>

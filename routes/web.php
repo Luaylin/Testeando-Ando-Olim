@@ -33,6 +33,22 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/search-friends', function () {
+        return Inertia::render('SearchFriends');
+    })->middleware(['auth', 'verified'])->name('search-friends');
+
+    Route::get('/users', function () {
+        return Inertia::render('UserList');
+    })->middleware(['auth', 'verified'])->name('users');
+
+    Route::get('/cities', function () {
+        return Inertia::render('CityList');
+    })->middleware(['auth', 'verified'])->name('cities');
+
+    Route::get('/colleges', function () {
+        return Inertia::render('CollegeList');
+    })->middleware(['auth', 'verified'])->name('colleges');
 });
 
 require __DIR__.'/auth.php';

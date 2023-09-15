@@ -20,6 +20,9 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('profile_img')->nullable();
+            $table->unsignedBigInteger('city_id')->nullable();
+            $table->foreign('city_id')->references('id')->on('cities')->onDelete('set null');
+            $table->enum("roles", ["user", "admin"])->default("user");
             $table->rememberToken();
             $table->timestamps();
         });

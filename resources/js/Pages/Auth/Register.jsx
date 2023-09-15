@@ -1,10 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import GuestLayout from '@/Layouts/GuestLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { CityService } from '@/Services/CityService';
+import { Dropdown } from 'primereact/dropdown';
 
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -15,8 +17,17 @@ export default function Register() {
         password: '',
         password_confirmation: '',
     });
+    const [cities, setCities] = useState([]);
 
     useEffect(() => {
+        CityService.getCities().then((res)=>{
+            setCities(res.map((item)=>{
+                return {
+                    value: item.id,
+                    name: item.name
+                }
+            }))
+        })
         return () => {
             reset('password', 'password_confirmation');
         };
@@ -62,6 +73,15 @@ export default function Register() {
                         onChange={(e) => setData('surname', e.target.value)}
                         required
                     />
+
+                    <InputError message={errors.name} className="mt-2" />
+                </div>
+
+                <div className="mt-4">
+                    <InputLabel htmlFor="city_id" value="Ciudad" />
+                    
+                    <Dropdown filter value={data.city_id} onChange={(e) => {setData('city_id', e.value)}} options={cities} optionLabel="name" 
+                        placeholder="Elige una ciudad" className="w-full md:w-14rem" />
 
                     <InputError message={errors.name} className="mt-2" />
                 </div>

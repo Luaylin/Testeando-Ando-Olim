@@ -22,8 +22,24 @@ export default function Authenticated({ user, header, children }) {
 
                             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <NavLink href={route('dashboard')} active={route().current('dashboard')}>
-                                    Dashboard
+                                    Inicio
                                 </NavLink>
+                                <NavLink href={route('search-friends')} active={route().current('search-friends')}>
+                                    Buscar amigos
+                                </NavLink>
+                                {
+                                    user.roles === "admin" ? <>
+                                    <NavLink href={route('users')} active={route().current('users')}>
+                                    Lista de usuarios
+                                </NavLink>
+                                <NavLink href={route('cities')} active={route().current('cities')}>
+                                    Lista de ciudades
+                                </NavLink>
+                                <NavLink href={route('colleges')} active={route().current('colleges')}>
+                                    Lista de escuelas
+                                </NavLink>
+                                </>: null
+                                }
                             </div>
                         </div>
 
@@ -93,8 +109,25 @@ export default function Authenticated({ user, header, children }) {
                 <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
                     <div className="pt-2 pb-3 space-y-1">
                         <ResponsiveNavLink href={route('dashboard')} active={route().current('dashboard')}>
-                            Dashboard
+                            Inicio
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink href={route('search-friends')} active={route().current('search-friends')}>
+                            Buscar amigos
+                        </ResponsiveNavLink>
+                        {
+                            user.roles === "admin" ? <>
+                                <ResponsiveNavLink href={route('users')} active={route().current('users')}>
+                            Lista de usuarios
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink href={route('cities')} active={route().current('cities')}>
+                            Lista de ciudades
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink href={route('colleges')} active={route().current('colleges')}>
+                            Lista de escuelas
+                        </ResponsiveNavLink>
+                            </>: null
+                        }
+                        
                     </div>
 
                     <div className="pt-4 pb-1 border-t border-gray-200">
@@ -104,9 +137,9 @@ export default function Authenticated({ user, header, children }) {
                         </div>
 
                         <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>Profile</ResponsiveNavLink>
+                            <ResponsiveNavLink href={route('profile.edit')}>Perfil</ResponsiveNavLink>
                             <ResponsiveNavLink method="post" href={route('logout')} as="button">
-                                Log Out
+                                Cerrar Sesión
                             </ResponsiveNavLink>
                         </div>
                     </div>
