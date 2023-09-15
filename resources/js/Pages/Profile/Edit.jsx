@@ -57,19 +57,19 @@ export default function Edit({ auth, mustVerifyEmail, status }) {
 
             <div className="py-12">
                 <div className="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-6">
-                    <div className="p-4 sm:p-8 bg-white shadow sm:rounded-lg grid grid-cols-12">
-                        <div className='col-span-2'>
-                            <Image src="/assets/logo-senati.png" alt="Image" width="250" style={{verticalAlign: "middle", display: 'block'}} preview />
-                        </div>
-                        <div className='ml-4 col-span-7 align-middle inline-block'>
-                            <h1>{`${auth.user.name} ${auth.user.surname}`}</h1>
-                            <h1>{`(${auth.user.username})`}</h1>
-                            <h1>{`${currentCity}`}</h1>
-                        </div>
-                        <div className='col-span-3 align-middle inline-block'>
-                            <Menu style={{width: "auto"}} model={items} />
-                        </div>
+                <div className="p-4 sm:p-8 bg-white shadow sm:rounded-lg grid grid-cols-12 flex items-center">
+                    <div className="col-span-12 md:col-span-2 md:flex md:flex-col md:items-center">
+                        <Image src="/assets/logo-senati.png" alt="Image" width="250" className="w-full" style={{ verticalAlign: "middle", display: 'block' }} preview />
                     </div>
+                    <div className="ml-4 col-span-12 md:col-span-7 md:items-center">
+                        <h1 className="text-2xl">{`${auth.user.name} ${auth.user.surname}`}</h1>
+                        <h1>{`(${auth.user.username})`}</h1>
+                        <h1>{`${currentCity}`}</h1>
+                    </div>
+                    <div className="col-span-12 md:col-span-3">
+                        <Menu style={{ width: "auto" }} model={items} />
+                    </div>
+                </div>
 
                     <div className="grid grid-cols-12">
                         <div className="p-4 sm:p-8 bg-white shadow sm:rounded-lg col-span-4">
