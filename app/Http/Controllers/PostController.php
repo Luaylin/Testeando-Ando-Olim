@@ -2,18 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Enterprise;
+use App\Models\Post;
 use Illuminate\Http\Request;
 
-class EnterpriseController extends Controller
+class PostController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $enterprises = Enterprise::all();
-        return response()->json($enterprises, 200);
+        $posts = Post::all();
     }
 
     /**
@@ -35,15 +34,16 @@ class EnterpriseController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Enterprise $enterprise)
+    public function show(string $id)
     {
-        //
+        $posts = Post::where('user_id', '=', $id)->get();
+        return response()->json($posts, 200);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Enterprise $enterprise)
+    public function edit(Post $post)
     {
         //
     }
@@ -51,7 +51,7 @@ class EnterpriseController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Enterprise $enterprise)
+    public function update(Request $request, Post $post)
     {
         //
     }
@@ -59,7 +59,7 @@ class EnterpriseController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Enterprise $enterprise)
+    public function destroy(Post $post)
     {
         //
     }

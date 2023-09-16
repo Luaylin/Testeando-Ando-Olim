@@ -50,4 +50,16 @@ class User extends Authenticatable
     public function city(){
         return $this->belongsTo(City::class);
     }
+
+    public function enterprises(){
+        return $this->belongsToMany(Enterprise::class, 'enterprise_user');
+    }
+
+    public function colleges(){
+        return $this->belongsToMany(College::class, 'college_user');
+    }
+
+    public function posts(){
+        return $this->belongsToMany(Post::class);
+    }
 }

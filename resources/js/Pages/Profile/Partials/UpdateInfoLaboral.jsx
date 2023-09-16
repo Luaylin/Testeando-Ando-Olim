@@ -13,9 +13,41 @@ import { Toolbar } from 'primereact/toolbar';
 import { classNames } from 'primereact/utils';
 import React, { useEffect, useRef, useState } from 'react';
 import { WorkspaceService } from '@/Services/WorkspaceService';
+import { EnterpriseService } from '@/Services/EnterpriseService';
+import { Dropdown } from 'primereact/dropdown';
+import {Calendar} from 'primereact/calendar'
+import {Checkbox} from 'primereact/checkbox'
+import { UserService } from '@/Services/UserService';
+import { usePage } from '@inertiajs/react';
+import moment from 'moment/moment';
 
 /* @todo Used 'as any' for types here. Will fix in next version due to onSelectionChange event type issue. */
-const UpdateInfoLaboral = () => {
+const UpdateInfoLaboral = ({setEnterprisesalt}) => {
+    const user = usePage().props.auth.user;
+    
+    const refresh = () => {
+        UserService.getEnterprisesInfo(user.id).then((res)=>{
+            let user = res.user;
+            let pivot = res.pivot;
+            let enterprise = res.enterprise;
+            let entries = pivot.map(x=>{
+                return {
+                    enterprise: enterprise.find((item)=>item.id === x.enterprise_id).name,
+                    role: x.role,
+                    start_date: moment(x.start_date).format("YYYY-MM"),
+                    end_date: x.continue===1? "ACTUALMENTE" : moment(x.end_date).format("YYYY-MM"),
+                    pivot_id: x.id
+                }
+            });
+            setEnterprisesalt(entries);
+            setProducts(entries)
+        })
+    }
+
+    useState(()=>{
+        refresh();
+    }, [])
+
     let emptyProduct = {
         id: '',
         name: '',
@@ -25,7 +57,12 @@ const UpdateInfoLaboral = () => {
         price: 0,
         quantity: 0,
         rating: 0,
-        inventoryStatus: 'INSTOCK'
+        inventoryStatus: 'INSTOCK',
+        enterprise: '',
+        checked: true,
+        role: '',
+        start: new Date(),
+        end: new Date()
     };
 
     const [loading, setLoading] = useState(false)
@@ -39,6 +76,7 @@ const UpdateInfoLaboral = () => {
     const [globalFilter, setGlobalFilter] = useState('');
     const toast = useRef(null);
     const dt = useRef(null);
+    const [enterprises, setEnterprises] = useState([]);
 
     /*useEffect(() => {
         ProductService.getProducts().then((data) => setProducts(data));
@@ -51,7 +89,14 @@ const UpdateInfoLaboral = () => {
         });
     };
 
-    const openNew = () => {
+    const openNew = async () => {
+        let enterprises = await EnterpriseService.getEnterprises();
+        setEnterprises(enterprises.map((item)=>{
+            return {
+                value: item.id,
+                name: item.name
+            }
+        }))
         setProduct(emptyProduct);
         setSubmitted(false);
         setProductDialog(true);
@@ -70,16 +115,20 @@ const UpdateInfoLaboral = () => {
         setDeleteProductsDialog(false);
     };
 
-    const saveProduct = () => {
+    const saveProduct = async () => {
         setSubmitted(true);
 
-        if (product.name.trim()) {
-            let _products = [...(products)];
+        if (true) {
             let _product = { ...product };
             if (product.id) {
-                const index = findIndexById(product.id);
-
-                _products[index] = _product;
+                UserService.addEnterprisesToUser({
+                    enterprise: product.enterprise,
+                    role: product.role,
+                    start_date: product.start,
+                    continue: product.checked,
+                    end_date:product.end,
+                    user: user.id
+                })
                 toast.current?.show({
                     severity: 'success',
                     summary: 'Successful',
@@ -87,20 +136,24 @@ const UpdateInfoLaboral = () => {
                     life: 3000
                 });
             } else {
-                _product.id = createId();
-                _product.image = 'product-placeholder.svg';
-                _products.push(_product);
+                await UserService.addEnterprisesToUser({
+                    enterprise: product.enterprise,
+                    role: product.role,
+                    start_date: moment(product.start).format("YYYY-MM-DD"),
+                    continue: product.checked,
+                    end_date:product.checked?null:moment(product.end).format("YYYY-MM-DD"),
+                    user: user.id
+                })
                 toast.current?.show({
                     severity: 'success',
-                    summary: 'Successful',
-                    detail: 'Product Created',
+                    summary: 'Correcto',
+                    detail: 'Información laboral añadida',
                     life: 3000
                 });
             }
-
-            setProducts(_products);
             setProductDialog(false);
             setProduct(emptyProduct);
+            refresh();
         }
     };
 
@@ -115,10 +168,8 @@ const UpdateInfoLaboral = () => {
     };
 
     const deleteProduct = () => {
-        let _products = (products)?.filter((val) => val.id !== product.id);
-        setProducts(_products);
-        setDeleteProductDialog(false);
-        setProduct(emptyProduct);
+        UserService.removeEnterprisesInfo(user.id, {pivot: product.pivot_id})
+        refresh();
         toast.current?.show({
             severity: 'success',
             summary: 'Successful',
@@ -267,8 +318,7 @@ const UpdateInfoLaboral = () => {
     const actionBodyTemplate = (rowData) => {
         return (
             <>
-                <Button icon="pi pi-pencil" rounded severity="success" className="mr-2" onClick={() => editProduct(rowData)} />
-                <Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmDeleteProduct(rowData)} />
+                {/**<Button icon="pi pi-trash" rounded severity="warning" onClick={() => confirmDeleteProduct(rowData)} /> */}
             </>
         );
     };
@@ -281,14 +331,14 @@ const UpdateInfoLaboral = () => {
 
     const productDialogFooter = (
         <>
-            <Button label="Cancel" icon="pi pi-times" text onClick={hideDialog} />
-            <Button label="Save" icon="pi pi-check" text onClick={saveProduct} />
+            <Button label="Cancelar" icon="pi pi-times" text onClick={hideDialog} />
+            <Button label="Guardar" icon="pi pi-check" text onClick={saveProduct} />
         </>
     );
     const deleteProductDialogFooter = (
         <>
             <Button label="No" icon="pi pi-times" text onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" text onClick={deleteProduct} />
+            <Button label="Si" icon="pi pi-check" text onClick={deleteProduct} />
         </>
     );
     const deleteProductsDialogFooter = (
@@ -322,83 +372,60 @@ const UpdateInfoLaboral = () => {
                         header={header}
                         responsiveLayout="scroll"
                     >
-                        <Column field="code" header="Institución" sortable body={codeBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="name" header="Cargo" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="name" header="Fecha de entrada" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
-                        <Column field="name" header="Fecha de salida" sortable body={nameBodyTemplate} headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="enterprise" header="Institución" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="role" header="Cargo" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="start_date" header="Fecha de entrada" sortable headerStyle={{ minWidth: '15rem' }}></Column>
+                        <Column field="end_date" header="Fecha de salida" sortable headerStyle={{ minWidth: '15rem' }}></Column>
                         <Column body={actionBodyTemplate} headerStyle={{ minWidth: '10rem' }}></Column>
                     </DataTable>
 
-                    <Dialog visible={productDialog} style={{ width: '450px' }} header="Product Details" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
+                    <Dialog visible={productDialog} style={{ width: '450px' }} header="Detalles Información Laboral" modal className="p-fluid" footer={productDialogFooter} onHide={hideDialog}>
                         {product.image && <img src={`/demo/images/product/${product.image}`} alt={product.image} width="150" className="mt-0 mx-auto mb-5 block shadow-2" />}
                         <div className="field">
-                            <label htmlFor="name">Name</label>
-                            <InputText
-                                id="name"
-                                value={product.name}
-                                onChange={(e) => onInputChange(e, 'name')}
-                                required
-                                autoFocus
-                                className={classNames({
-                                    'p-invalid': submitted && !product.name
-                                })}
-                            />
+                            <label htmlFor="name">Empresa</label>
+                            <Dropdown filter value={product.enterprise} onChange={(e) => {
+                                let _product = {...product};
+                                _product.enterprise = e.value;
+                                setProduct(_product)
+                            }} options={enterprises} optionLabel="name" 
+                        placeholder="Elige una Empresa" className="w-full md:w-14rem" />
                             {submitted && !product.name && <small className="p-invalid">Name is required.</small>}
                         </div>
-                        <div className="field">
-                            <label htmlFor="description">Description</label>
-                            <InputTextarea id="description" value={product.description} onChange={(e) => onInputChange(e, 'description')} required rows={3} cols={20} />
+                        <div className="field col">
+                                <label htmlFor="quantity">Cargo</label>
+                                <InputText id="quantity" value={product.role} onChange={(e) => onInputChange(e, 'role')} />
                         </div>
-
-                        <div className="field">
-                            <label className="mb-3">Category</label>
-                            <div className="formgrid grid">
-                                <div className="field-radiobutton col-6">
-                                    <RadioButton inputId="category1" name="category" value="Accessories" onChange={onCategoryChange} checked={product.category === 'Accessories'} />
-                                    <label htmlFor="category1">Accessories</label>
-                                </div>
-                                <div className="field-radiobutton col-6">
-                                    <RadioButton inputId="category2" name="category" value="Clothing" onChange={onCategoryChange} checked={product.category === 'Clothing'} />
-                                    <label htmlFor="category2">Clothing</label>
-                                </div>
-                                <div className="field-radiobutton col-6">
-                                    <RadioButton inputId="category3" name="category" value="Electronics" onChange={onCategoryChange} checked={product.category === 'Electronics'} />
-                                    <label htmlFor="category3">Electronics</label>
-                                </div>
-                                <div className="field-radiobutton col-6">
-                                    <RadioButton inputId="category4" name="category" value="Fitness" onChange={onCategoryChange} checked={product.category === 'Fitness'} />
-                                    <label htmlFor="category4">Fitness</label>
-                                </div>
-                            </div>
+                        <div className="field col">
+                                <label htmlFor="quantity">Fecha de entrada</label>
+                                <Calendar showIcon showButtonBar value={product.start} view="month" dateFormat="mm/yy" onChange={(e) => {
+                                    setProduct({...product, start: e.value})
+                                }} />
                         </div>
-
-                        <div className="formgrid grid">
-                            <div className="field col">
-                                <label htmlFor="price">Price</label>
-                                <InputNumber id="price" value={product.price} onValueChange={(e) => onInputNumberChange(e, 'price')} mode="currency" currency="USD" locale="en-US" />
-                            </div>
-                            <div className="field col">
-                                <label htmlFor="quantity">Quantity</label>
-                                <InputNumber id="quantity" value={product.quantity} onValueChange={(e) => onInputNumberChange(e, 'quantity')} />
-                            </div>
+                        <div className="field col mt-2 mb-2">
+                                <Checkbox inputId="ingredient1" name="pizza" value="Cheese" onChange={(e)=>{
+                                    setProduct({...product, checked: e.checked})
+                                }} checked={product.checked} />
+                                <label htmlFor="quantity" className='ml-2'>¿Continuas laborando?</label>
+                                
                         </div>
+                        {
+                            product.checked?null:<div className="field col">
+                            <label htmlFor="quantity">Fecha de salida</label>
+                            <Calendar showIcon showButtonBar value={product.end} view="month" dateFormat="mm/yy" onChange={(e) => {
+                                setProduct({...product, end: e.value})
+                            }} />
+                    </div>
+                        }
                     </Dialog>
 
-                    <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
+                    <Dialog visible={deleteProductDialog} style={{ width: '450px' }} header="Confirmación" modal footer={deleteProductDialogFooter} onHide={hideDeleteProductDialog}>
                         <div className="flex align-items-center justify-content-center">
                             <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
                             {product && (
                                 <span>
-                                    Are you sure you want to delete <b>{product.name}</b>?
+                                    ¿Estas seguro que deseas eliminar tu historial en <b>{product.enterprise}</b>?
                                 </span>
                             )}
-                        </div>
-                    </Dialog>
-
-                    <Dialog visible={deleteProductsDialog} style={{ width: '450px' }} header="Confirm" modal footer={deleteProductsDialogFooter} onHide={hideDeleteProductsDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: '2rem' }} />
-                            {product && <span>Are you sure you want to delete the selected products?</span>}
                         </div>
                     </Dialog>
                 </div>
